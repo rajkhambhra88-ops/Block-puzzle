@@ -14,7 +14,7 @@
         }
 
         body {
-            background-color: #3b55b2; /* नीला बैकग्राउंड */
+            background-color: #3b55b2;
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
@@ -22,7 +22,7 @@
             height: 100vh;
             overflow: hidden;
             color: white;
-            touch-action: none; /* मोबाइल पर स्क्रॉल रोकने के लिए */
+            touch-action: none; /* स्क्रीन स्क्रॉल रोकने के लिए */
         }
 
         #score-container {
@@ -87,6 +87,7 @@
         .draggable-piece {
             display: grid;
             gap: 2px;
+            cursor: grab;
         }
 
         /* रंग */
@@ -98,14 +99,16 @@
         .c-green { background-color: #2ecc71; }
         .c-red { background-color: #e74c3c; }
 
-        /* फॉलो करने वाला ड्रैग एलिमेंट */
+        /* ड्रैग करते समय उंगली के साथ चलने वाला ब्लॉक */
         #drag-element {
             position: fixed;
             display: grid;
             gap: 2px;
-            pointer-events: none; /* ताकि उंगली नीचे वाले सेल को पकड़ सके */
+            pointer-events: none; 
             z-index: 1000;
-            transform: translate(-50%, -50%);
+            /* शुरुआती पोजीशन */
+            top: 0;
+            left: 0;
         }
 
         #game-over {
@@ -161,7 +164,6 @@
     let score = 0;
     let currentPieces = [null, null, null];
     
-    // ड्रैग स्टेट
     let draggedPiece = null;
     let draggedIndex = -1;
     let dragX = 0, dragY = 0;
@@ -231,7 +233,6 @@
         const pieceEl = document.createElement('div');
         pieceEl.className = 'draggable-piece';
         
-        // नीचे दिखने वाले ब्लॉक का साइज
         const pCellSize = window.innerWidth < 400 ? 22 : 30;
         
         pieceEl.style.gridTemplateColumns = `repeat(${shape[0].length}, ${pCellSize}px)`;
@@ -247,9 +248,9 @@
             }
         }
 
-        // ड्रैग शुरू करने का इवेंट
+        // पॉइंटर डाउन (टच/माउस)
         pieceEl.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
+            e.preventDefault(); // डिफ़ॉल्ट स्क्रॉल रोकें
             startDrag(e, index, shape, color, pieceEl);
         });
         
@@ -262,9 +263,9 @@
         draggedPiece = { shape, color };
         draggedIndex = index;
 
-        // ग्रिड सेल का असली साइज निकालें
+        // ग्रिड सेल का असली साइज
         const gridRect = document.getElementById('grid').getBoundingClientRect();
-        const cellSize = (gridRect.width - 16) / GRID_SIZE; // 16px गैप और पैडिंग के लिए
+        const cellSize = (gridRect.width - 16) / GRID_SIZE; 
 
         const dragEl = document.getElementById('drag-element');
         dragEl.innerHTML = '';
@@ -285,11 +286,11 @@
         
         // माउस/उंगली की पोजीशन
         dragX = e.clientX;
-        dragY = e.clientY - 40; // उंगली से थोड़ा ऊपर दिखाने के लिए
+        dragY = e.clientY - 50; // उंगली से थोड़ा ऊपर
         updateDragElementPosition();
 
-        // ओरिजिनल ब्लॉक को छुपा दें
-        originalEl.style.opacity = '0.3';
+        // नीचे वाले ब्लॉक को तुरंत गायब कर दें (ताकि वहीं न रह जाए)
+        originalEl.style.visibility = 'hidden';
 
         document.addEventListener('pointermove', onDragMove);
         document.addEventListener('pointerup', onDragEnd);
@@ -297,22 +298,20 @@
 
     function updateDragElementPosition() {
         const dragEl = document.getElementById('drag-element');
-        dragEl.style.left = `${dragX}px`;
-        dragEl.style.top = `${dragY}px`;
+        // ब्लॉक को माउस के सेंटर में रखने के लिए translate का उपयोग
+        dragEl.style.transform = `translate(${dragX}px, ${dragY}px) translate(-50%, -50%)`;
     }
 
     function onDragMove(e) {
         if (!draggedPiece) return;
         dragX = e.clientX;
-        dragY = e.clientY - 40;
+        dragY = e.clientY - 50;
         updateDragElementPosition();
         
-        // ग्रिड को हाइलाइट करें
         highlightGrid();
     }
 
     function highlightGrid() {
-        // सारे सेल का रंग वापस नॉर्मल करें
         document.querySelectorAll('.cell').forEach(c => {
             c.style.backgroundColor = '#0d1425';
         });
@@ -335,11 +334,11 @@
         const gridEl = document.getElementById('grid');
         const gridRect = gridEl.getBoundingClientRect();
         
-        // ग्रिड के अंदर माउस की पोजीशन
+        // माउस की पोजीशन ग्रिड के अंदर
         const relativeX = dragX - gridRect.left;
         const relativeY = dragY - gridRect.top;
 
-        // अगर माउस ग्रिड के आस-पास भी नहीं है
+        // अगर माउस ग्रिड से काफी दूर है
         if (relativeX < -50 || relativeY < -50 || relativeX > gridRect.width + 50 || relativeY > gridRect.height + 50) {
             return null;
         }
@@ -347,7 +346,6 @@
         const cellWidth = gridRect.width / GRID_SIZE;
         const cellHeight = gridRect.height / GRID_SIZE;
 
-        // कैलकुलेट करें कि ब्लॉक किस सेल पर गिरेगा
         let col = Math.round(relativeX / cellWidth - (draggedPiece.shape[0].length / 2));
         let row = Math.round(relativeY / cellHeight - (draggedPiece.shape.length / 2));
 
@@ -368,33 +366,30 @@
         let placed = false;
 
         if (placement && canPlacePiece(placement.row, placement.col, draggedPiece.shape)) {
-            // ब्लॉक को ग्रिड में सेट करें
             placePiece(placement.row, placement.col, draggedPiece);
             placed = true;
         }
 
         if (placed) {
-            // टुकड़े को हटा दें
+            // टुकड़े को परमानेंट हटा दें
             currentPieces[draggedIndex] = null;
             const holder = document.getElementById(`holder-${draggedIndex}`);
-            holder.innerHTML = ''; // नीचे से हटाएं
+            holder.innerHTML = ''; 
 
             checkLines();
             
-            // चेक करें कि क्या गेम ओवर हुआ
+            // गेम ओवर चेक
             if (isGameOver()) {
                 document.getElementById('game-over').style.display = 'flex';
             } else if (currentPieces.every(p => p === null)) {
-                // अगर तीनों टुकड़े खत्म हो गए, तो नए दें
                 generatePieces();
             }
         } else {
-            // अगर सेट नहीं हुआ, तो टुकड़ा वापस अपनी जगह पर आ जाए
+            // अगर गलत जगह छोड़ा, तो वापस लाएं
             const originalEl = document.getElementById(`holder-${draggedIndex}`).firstChild;
-            if(originalEl) originalEl.style.opacity = '1';
+            if(originalEl) originalEl.style.visibility = 'visible';
         }
 
-        // ड्रैग एलिमेंट छुपा दें
         document.getElementById('drag-element').style.display = 'none';
         draggedPiece = null;
         draggedIndex = -1;
@@ -454,7 +449,7 @@
         }
     }
 
-    // गेम ओवर चेक (अगर कोई भी टुकड़ा कहीं भी सेट नहीं हो सकता)
+    // सही गेम ओवर चेक (अगर बोर्ड पर तीनों में से कोई भी ब्लॉक नहीं बैठ सकता)
     function isGameOver() {
         for (let i = 0; i < 3; i++) {
             if (currentPieces[i] === null) continue;
@@ -462,18 +457,16 @@
             for (let r = 0; r < GRID_SIZE; r++) {
                 for (let c = 0; c < GRID_SIZE; c++) {
                     if (canPlacePiece(r, c, shape)) {
-                        return false; // अगर एक भी जगह मिली, तो गेम ओवर नहीं है
+                        return false; // अगर एक भी जगह मिल गई तो गेम ओवर नहीं है
                     }
                 }
             }
         }
-        return true; // सारी जगहें चेक कर लीं, कहीं नहीं बैठ रहा
+        return true; 
     }
 
-    // स्क्रीन साइज बदलने पर ग्रिड रेंडर करें
     window.addEventListener('resize', renderGrid);
 
-    // गेम लोड करें
     initGame();
 </script>
 </body>
