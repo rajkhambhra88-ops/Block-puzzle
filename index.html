@@ -22,7 +22,7 @@
             height: 100vh;
             overflow: hidden;
             color: white;
-            touch-action: none; /* स्क्रीन स्क्रॉल रोकने के लिए */
+            touch-action: none;
         }
 
         #score-container {
@@ -99,14 +99,12 @@
         .c-green { background-color: #2ecc71; }
         .c-red { background-color: #e74c3c; }
 
-        /* ड्रैग करते समय उंगली के साथ चलने वाला ब्लॉक */
         #drag-element {
             position: fixed;
             display: grid;
             gap: 2px;
             pointer-events: none; 
             z-index: 1000;
-            /* शुरुआती पोजीशन */
             top: 0;
             left: 0;
         }
@@ -192,6 +190,7 @@
         document.getElementById('score-container').innerText = score;
         document.getElementById('game-over').style.display = 'none';
         
+        // ग्रिड को खाली करें (null का मतलब खाली जगह)
         grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
         renderGrid();
         generatePieces();
@@ -248,9 +247,8 @@
             }
         }
 
-        // पॉइंटर डाउन (टच/माउस)
         pieceEl.addEventListener('pointerdown', (e) => {
-            e.preventDefault(); // डिफ़ॉल्ट स्क्रॉल रोकें
+            e.preventDefault();
             startDrag(e, index, shape, color, pieceEl);
         });
         
@@ -263,7 +261,6 @@
         draggedPiece = { shape, color };
         draggedIndex = index;
 
-        // ग्रिड सेल का असली साइज
         const gridRect = document.getElementById('grid').getBoundingClientRect();
         const cellSize = (gridRect.width - 16) / GRID_SIZE; 
 
@@ -284,12 +281,10 @@
 
         dragEl.style.display = 'grid';
         
-        // माउस/उंगली की पोजीशन
         dragX = e.clientX;
-        dragY = e.clientY - 50; // उंगली से थोड़ा ऊपर
+        dragY = e.clientY - 50;
         updateDragElementPosition();
 
-        // नीचे वाले ब्लॉक को तुरंत गायब कर दें (ताकि वहीं न रह जाए)
         originalEl.style.visibility = 'hidden';
 
         document.addEventListener('pointermove', onDragMove);
@@ -298,7 +293,6 @@
 
     function updateDragElementPosition() {
         const dragEl = document.getElementById('drag-element');
-        // ब्लॉक को माउस के सेंटर में रखने के लिए translate का उपयोग
         dragEl.style.transform = `translate(${dragX}px, ${dragY}px) translate(-50%, -50%)`;
     }
 
@@ -334,11 +328,9 @@
         const gridEl = document.getElementById('grid');
         const gridRect = gridEl.getBoundingClientRect();
         
-        // माउस की पोजीशन ग्रिड के अंदर
         const relativeX = dragX - gridRect.left;
         const relativeY = dragY - gridRect.top;
 
-        // अगर माउस ग्रिड से काफी दूर है
         if (relativeX < -50 || relativeY < -50 || relativeX > gridRect.width + 50 || relativeY > gridRect.height + 50) {
             return null;
         }
@@ -371,21 +363,19 @@
         }
 
         if (placed) {
-            // टुकड़े को परमानेंट हटा दें
             currentPieces[draggedIndex] = null;
             const holder = document.getElementById(`holder-${draggedIndex}`);
             holder.innerHTML = ''; 
 
             checkLines();
             
-            // गेम ओवर चेक
+            // गेम ओवर चेक (सही तरीके से)
             if (isGameOver()) {
                 document.getElementById('game-over').style.display = 'flex';
             } else if (currentPieces.every(p => p === null)) {
                 generatePieces();
             }
         } else {
-            // अगर गलत जगह छोड़ा, तो वापस लाएं
             const originalEl = document.getElementById(`holder-${draggedIndex}`).firstChild;
             if(originalEl) originalEl.style.visibility = 'visible';
         }
@@ -395,12 +385,15 @@
         draggedIndex = -1;
     }
 
+    // यह फंक्शन चेक करता है कि ब्लॉक उस जगह पर फिट होगा या नहीं
     function canPlacePiece(row, col, shape) {
+        // अगर बोर्ड के बाहर जा रहा है
         if (row < 0 || col < 0 || row + shape.length > GRID_SIZE || col + shape[0].length > GRID_SIZE) {
             return false;
         }
         for (let r = 0; r < shape.length; r++) {
             for (let c = 0; c < shape[r].length; c++) {
+                // अगर उस जगह पर पहले से कोई ब्लॉक (null के अलावा कुछ) है, तो फिट नहीं होगा
                 if (shape[r][c] === 1 && grid[row + r][col + c] !== null) {
                     return false;
                 }
@@ -449,20 +442,24 @@
         }
     }
 
-    // सही गेम ओवर चेक (अगर बोर्ड पर तीनों में से कोई भी ब्लॉक नहीं बैठ सकता)
+    // गेम ओवर चेक करने का मुख्य लॉजिक
     function isGameOver() {
+        // तीनों बचे हुए ब्लॉक्स को एक-एक करके चेक करें
         for (let i = 0; i < 3; i++) {
-            if (currentPieces[i] === null) continue;
-            const shape = currentPieces[i].shape;
+            const piece = currentPieces[i];
+            if (piece === null) continue; // अगर ब्लॉक खत्म हो गया है तो स्किप करें
+            
+            const shape = piece.shape;
+            // बोर्ड के हर एक खाने पर चेक करें कि क्या वह ब्लॉक वहाँ फिट हो सकता है
             for (let r = 0; r < GRID_SIZE; r++) {
                 for (let c = 0; c < GRID_SIZE; c++) {
                     if (canPlacePiece(r, c, shape)) {
-                        return false; // अगर एक भी जगह मिल गई तो गेम ओवर नहीं है
+                        return false; // अगर कहीं भी फिट होने की जगह मिल गई, तो गेम ओवर नहीं है
                     }
                 }
             }
         }
-        return true; 
+        return true; // अगर तीनों ब्लॉक कहीं नहीं फिट हो रहे, तो गेम ओवर
     }
 
     window.addEventListener('resize', renderGrid);
