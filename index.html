@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Block Puzzle Game - Perfect</title>
+    <title>Block Puzzle Game</title>
     <style>
         * {
             box-sizing: border-box;
@@ -14,7 +14,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, #2b3a8a, #1a2350);
+            background: linear-gradient(135deg, #3b55b2, #253879);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
@@ -26,7 +26,7 @@
         }
 
         #score-container {
-            font-size: 55px;
+            font-size: 60px;
             font-weight: 800;
             margin-top: 15px;
             margin-bottom: 15px;
@@ -35,17 +35,17 @@
 
         #game-container {
             position: relative;
-            background-color: #151b36; 
-            border-radius: 12px;
-            padding: 4px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6), inset 0 0 10px rgba(0,0,0,0.5);
+            background-color: #1a2238; 
+            border-radius: 10px;
+            padding: 3px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
         }
 
         #grid {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr);
-            gap: 3px;
+            gap: 2px;
             width: 92vw;
             max-width: 400px;
             height: 92vw;
@@ -53,35 +53,34 @@
         }
 
         .cell {
-            background-color: #0b1021;
-            border-radius: 6px;
+            background-color: #0d1425;
+            border-radius: 4px;
             width: 100%;
             height: 100%;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            /* खाली खानों में भी हल्की गहराई */
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
         }
 
-        /* --- 3D ब्लॉक डिज़ाइन --- */
+        /* --- ब्लॉक का 3D डिज़ाइन --- */
         .block {
-            border-radius: 6px;
+            border-radius: 4px;
             width: 100%;
             height: 100%;
             position: relative;
             box-shadow: 
-                inset -2px -3px 5px rgba(0,0,0,0.5), 
-                inset 3px 3px 6px rgba(255,255,255,0.6),
-                0 2px 4px rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.2);
+                inset -2px -2px 4px rgba(0,0,0,0.4), 
+                inset 2px 2px 4px rgba(255,255,255,0.5),
+                0 2px 3px rgba(0,0,0,0.3);
         }
 
-        /* --- अलग-अलग चमकदार रंग --- */
-        .c-blue { background: linear-gradient(135deg, #5b9bff, #2b6eeb); }
-        .c-orange { background: linear-gradient(135deg, #ff9f43, #e67e22); }
-        .c-yellow { background: linear-gradient(135deg, #f9ca24, #f0932b); }
-        .c-teal { background: linear-gradient(135deg, #1dd1a1, #10ac84); }
-        .c-purple { background: linear-gradient(135deg, #a55eea, #8854d0); }
-        .c-green { background: linear-gradient(135deg, #2ed573, #1eae48); }
-        .c-red { background: linear-gradient(135deg, #ff6b81, #ee5253); }
-        .c-pink { background: linear-gradient(135deg, #ff9ff3, #f368e0); }
+        /* --- अलग-अलग रंग --- */
+        .c-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .c-orange { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+        .c-yellow { background: linear-gradient(135deg, #fceabb 0%, #f8b500 100%); }
+        .c-teal { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .c-purple { background: linear-gradient(135deg, #c471ed 0%, #f64f59 100%); }
+        .c-green { background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); }
+        .c-red { background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%); }
 
         #pieces-container {
             display: flex;
@@ -90,7 +89,7 @@
             width: 92vw;
             max-width: 400px;
             height: 120px;
-            margin-top: 25px;
+            margin-top: 30px;
         }
 
         .piece-holder {
@@ -103,60 +102,54 @@
 
         .draggable-piece {
             display: grid;
-            gap: 3px;
+            gap: 2px;
             cursor: grab;
-            filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.5));
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.4));
         }
 
         #drag-element {
             position: fixed;
             display: grid;
-            gap: 3px;
+            gap: 2px;
             pointer-events: none; 
             z-index: 1000;
             top: 0;
             left: 0;
-            filter: drop-shadow(0px 15px 20px rgba(0,0,0,0.7));
-            opacity: 0.9;
+            filter: drop-shadow(0px 8px 12px rgba(0,0,0,0.6));
         }
 
         #game-over {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(10, 15, 30, 0.95);
-            backdrop-filter: blur(5px);
+            background: rgba(13, 20, 37, 0.95);
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            border-radius: 12px;
+            border-radius: 10px;
             z-index: 2000;
         }
         
         #game-over h2 { 
-            margin-bottom: 25px; 
-            font-size: 38px; 
+            margin-bottom: 20px; 
+            font-size: 36px; 
             color: #fff; 
             text-shadow: 0 4px 10px rgba(0,0,0,0.8);
-            letter-spacing: 2px;
         }
         
         button {
-            padding: 14px 35px;
+            padding: 12px 35px;
             font-size: 22px;
             border: none;
             border-radius: 30px;
             background: linear-gradient(135deg, #00ff88, #00b85c);
             color: #000;
-            font-weight: 800;
+            font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 6px 15px rgba(0,255,136,0.4), inset 0 2px 5px rgba(255,255,255,0.5);
-            transition: transform 0.1s;
+            box-shadow: 0 6px 15px rgba(0,255,136,0.4);
         }
         
-        button:active {
-            transform: scale(0.95);
-        }
+        button:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
@@ -166,7 +159,7 @@
     <div id="game-container">
         <div id="grid"></div>
         <div id="game-over">
-            <h2>GAME OVER</h2>
+            <h2>Game Over!</h2>
             <button onclick="initGame()">Play Again</button>
         </div>
     </div>
@@ -187,9 +180,11 @@
     
     let draggedPiece = null;
     let draggedIndex = -1;
-    let dragX = 0, dragY = 0;
 
-    const colors = ['c-blue', 'c-orange', 'c-yellow', 'c-teal', 'c-purple', 'c-green', 'c-red', 'c-pink'];
+    // ग्रिड का असली साइज (मोबाइल के हिसाब से)
+    let cellSize = 0;
+
+    const colors = ['c-blue', 'c-orange', 'c-yellow', 'c-teal', 'c-purple', 'c-green', 'c-red'];
 
     const shapes = [
         [[1]], // 1x1
@@ -202,9 +197,9 @@
         [[1, 1], [1, 1]], // 2x2
         [[1, 1, 1], [1, 1, 1], [1, 1, 1]], // 3x3
         [[1, 0], [1, 1]], // L-Shape
-        [[0, 1], [1, 1]], // Reverse L
-        [[1, 1], [1, 0]], // L-Shape
-        [[1, 1], [0, 1]], // Reverse L
+        [[0, 1], [1, 1]],
+        [[1, 1], [1, 0]],
+        [[1, 1], [0, 1]],
         [[1, 1, 1], [0, 1, 0]] // T-Shape
     ];
 
@@ -213,10 +208,13 @@
         document.getElementById('score-container').innerText = score;
         document.getElementById('game-over').style.display = 'none';
         
-        // बोर्ड को खाली करें
         grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
         renderGrid();
         generatePieces();
+        
+        // ग्रिड का साइज कैलकुलेट करें
+        const gridRect = document.getElementById('grid').getBoundingClientRect();
+        cellSize = (gridRect.width - 14) / GRID_SIZE; // 14px गैप और पैडिंग को हटाकर
     }
 
     function renderGrid() {
@@ -255,7 +253,7 @@
         const pieceEl = document.createElement('div');
         pieceEl.className = 'draggable-piece';
         
-        const pCellSize = window.innerWidth < 400 ? 24 : 32;
+        const pCellSize = window.innerWidth < 400 ? 22 : 30;
         
         pieceEl.style.gridTemplateColumns = `repeat(${shape[0].length}, ${pCellSize}px)`;
         pieceEl.style.gridTemplateRows = `repeat(${shape.length}, ${pCellSize}px)`;
@@ -284,9 +282,6 @@
         draggedPiece = { shape, color };
         draggedIndex = index;
 
-        const gridRect = document.getElementById('grid').getBoundingClientRect();
-        const cellSize = (gridRect.width - 18) / GRID_SIZE;
-
         const dragEl = document.getElementById('drag-element');
         dragEl.innerHTML = '';
         dragEl.style.gridTemplateColumns = `repeat(${shape[0].length}, ${cellSize}px)`;
@@ -304,9 +299,8 @@
 
         dragEl.style.display = 'grid';
         
-        dragX = e.clientX;
-        dragY = e.clientY - 60; 
-        updateDragElementPosition();
+        // ब्लॉक को उंगली के ठीक ऊपर रखने के लिए
+        updateDragElementPosition(e.clientX, e.clientY - 50);
 
         originalEl.style.visibility = 'hidden';
 
@@ -314,45 +308,30 @@
         document.addEventListener('pointerup', onDragEnd);
     }
 
-    function updateDragElementPosition() {
+    function updateDragElementPosition(x, y) {
         const dragEl = document.getElementById('drag-element');
-        dragEl.style.transform = `translate(${dragX}px, ${dragY}px) translate(-50%, -50%)`;
+        // -50% का मतलब है कि ब्लॉक का सेंटर माउस पर रहे
+        dragEl.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
     }
 
     function onDragMove(e) {
         if (!draggedPiece) return;
-        dragX = e.clientX;
-        dragY = e.clientY - 60;
-        updateDragElementPosition();
-        highlightGrid();
-    }
-
-    function highlightGrid() {
-        document.querySelectorAll('.cell').forEach(c => {
-            c.style.backgroundColor = '#0b1021';
-        });
-
-        const placement = getGridPlacement();
-        if (placement && canPlacePiece(placement.row, placement.col, draggedPiece.shape)) {
-            const shape = draggedPiece.shape;
-            for (let r = 0; r < shape.length; r++) {
-                for (let c = 0; c < shape[r].length; c++) {
-                    if (shape[r][c] === 1) {
-                        const cell = document.querySelector(`.cell[data-row="${placement.row + r}"][data-col="${placement.col + c}"]`);
-                        if (cell) cell.style.backgroundColor = 'rgba(0, 255, 136, 0.4)'; 
-                    }
-                }
-            }
-        }
-    }
-
-    function getGridPlacement() {
-        const gridEl = document.getElementById('grid');
-        const gridRect = gridEl.getBoundingClientRect();
+        let currentX = e.clientX;
+        let currentY = e.clientY - 50;
         
-        const relativeX = dragX - gridRect.left;
-        const relativeY = dragY - gridRect.top;
+        updateDragElementPosition(currentX, currentY);
+        highlightGrid(currentX, currentY);
+    }
 
+    // ब्लॉक किस सेल में गिरेगा, यह कैलकुलेट करना
+    function getTargetCell(x, y) {
+        const gridRect = document.getElementById('grid').getBoundingClientRect();
+        
+        // ग्रिड के अंदर माउस की पोजीशन
+        const relativeX = x - gridRect.left;
+        const relativeY = y - gridRect.top;
+
+        // अगर माउस ग्रिड से बाहर है
         if (relativeX < -50 || relativeY < -50 || relativeX > gridRect.width + 50 || relativeY > gridRect.height + 50) {
             return null;
         }
@@ -360,46 +339,68 @@
         const cellWidth = gridRect.width / GRID_SIZE;
         const cellHeight = gridRect.height / GRID_SIZE;
 
+        // ब्लॉक के सेंटर से रो और कॉलम निकालें
         let col = Math.round(relativeX / cellWidth - (draggedPiece.shape[0].length / 2));
         let row = Math.round(relativeY / cellHeight - (draggedPiece.shape.length / 2));
 
         return { row, col };
     }
 
+    function highlightGrid(x, y) {
+        document.querySelectorAll('.cell').forEach(c => {
+            c.style.backgroundColor = '#0d1425'; // नॉर्मल रंग
+        });
+
+        const target = getTargetCell(x, y);
+        if (target && canPlacePiece(target.row, target.col, draggedPiece.shape)) {
+            const shape = draggedPiece.shape;
+            for (let r = 0; r < shape.length; r++) {
+                for (let c = 0; c < shape[r].length; c++) {
+                    if (shape[r][c] === 1) {
+                        const cell = document.querySelector(`.cell[data-row="${target.row + r}"][data-col="${target.col + c}"]`);
+                        if (cell) cell.style.backgroundColor = 'rgba(0, 255, 136, 0.4)'; // हरा हाइलाइट
+                    }
+                }
+            }
+        }
+    }
+
     function onDragEnd(e) {
         document.removeEventListener('pointermove', onDragMove);
-        document.removeEventListener('pointerup', onDragEnd);
+        document.addEventListener('pointerup', onDragEnd); // Fix: removeEventListener
 
         document.querySelectorAll('.cell').forEach(c => {
-            c.style.backgroundColor = '#0b1021';
+            c.style.backgroundColor = '#0d1425';
         });
 
         if (!draggedPiece) return;
 
-        const placement = getGridPlacement();
+        let currentX = e.clientX;
+        let currentY = e.clientY - 50;
+        
+        const target = getTargetCell(currentX, currentY);
         let placed = false;
 
-        if (placement && canPlacePiece(placement.row, placement.col, draggedPiece.shape)) {
-            placePiece(placement.row, placement.col, draggedPiece);
+        if (target && canPlacePiece(target.row, target.col, draggedPiece.shape)) {
+            placePiece(target.row, target.col, draggedPiece);
             placed = true;
         }
 
         if (placed) {
-            // ब्लॉक को स्थायी रूप से हटाएं
             currentPieces[draggedIndex] = null;
             const holder = document.getElementById(`holder-${draggedIndex}`);
             holder.innerHTML = ''; 
 
             checkLines();
             
-            // गेम ओवर चेक
+            // गेम ओवर चेक करें
             if (isGameOver()) {
                 document.getElementById('game-over').style.display = 'flex';
             } else if (currentPieces.every(p => p === null)) {
                 generatePieces();
             }
         } else {
-            // अगर गलत जगह छोड़ा, तो ब्लॉक को वापस नीचे दिखाएं
+            // अगर फिट नहीं हुआ तो ब्लॉक वापस दिखाएं
             const originalEl = document.getElementById(`holder-${draggedIndex}`).firstChild;
             if(originalEl) originalEl.style.visibility = 'visible';
         }
@@ -409,7 +410,6 @@
         draggedIndex = -1;
     }
 
-    // चेक करता है कि ब्लॉक उस जगह पर फिट हो सकता है या नहीं
     function canPlacePiece(row, col, shape) {
         if (row < 0 || col < 0 || row + shape.length > GRID_SIZE || col + shape[0].length > GRID_SIZE) {
             return false; 
@@ -464,34 +464,30 @@
         }
     }
 
-    // --- असली गेम ओवर लॉजिक ---
+    // --- 100% सटीक गेम ओवर चेक ---
     function isGameOver() {
-        // 3 में से जो भी ब्लॉक बचे हैं, उन्हें एक-एक करके चेक करें
         for (let i = 0; i < 3; i++) {
             const piece = currentPieces[i];
-            
-            // अगर वह ब्लॉक पहले ही खेल लिया गया है (null है), तो उसे चेक न करें
-            if (piece === null) continue; 
+            if (piece === null) continue; // अगर ब्लॉक खेल लिया गया है तो स्किप करें
             
             const shape = piece.shape;
             
-            // बोर्ड के हर एक खाने (0 से 7 तक) पर चेक करें
+            // बोर्ड के हर एक सेल पर चेक करें
             for (let r = 0; r < GRID_SIZE; r++) {
                 for (let c = 0; c < GRID_SIZE; c++) {
-                    // अगर कोई भी बचा हुआ ब्लॉक कहीं भी फिट हो सकता है, तो गेम ओवर नहीं है
                     if (canPlacePiece(r, c, shape)) {
-                        return false; 
+                        return false; // जगह मिल गई, तो गेम ओवर नहीं
                     }
                 }
             }
         }
-        // अगर सारे ब्लॉक चेक करने के बाद भी कोई जगह नहीं मिली, तो गेम ओवर
-        return true; 
+        return true; // कोई जगह नहीं मिली, गेम ओवर
     }
 
-    window.addEventListener('resize', renderGrid);
+    window.addEventListener('resize', () => {
+        initGame(); // रिसाइज होने पर गेम रिसेट हो जाएगा (साइज फिक्स करने के लिए)
+    });
 
-    // गेम शुरू करें
     initGame();
 </script>
 </body>
