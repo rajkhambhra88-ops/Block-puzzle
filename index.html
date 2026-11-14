@@ -1,494 +1,937 @@
+HTML
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Block Puzzle Game</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>3D Block Puzzle Game</title>
 
-        body {
-            background: linear-gradient(135deg, #3b55b2, #253879);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            color: white;
-            touch-action: none;
-        }
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
 
-        #score-container {
-            font-size: 60px;
-            font-weight: 800;
-            margin-top: 15px;
-            margin-bottom: 15px;
-            text-shadow: 0 4px 8px rgba(0,0,0,0.5);
-        }
+body {
+    background: linear-gradient(135deg, #3b55b2, #253879);
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100svh;
+    overflow: hidden;
+    color: white;
+    touch-action: none;
+}
 
-        #game-container {
-            position: relative;
-            background-color: #1a2238; 
-            border-radius: 10px;
-            padding: 3px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-        }
+#score-container {
+    font-size: clamp(42px, 12vw, 60px);
+    font-weight: 800;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    text-shadow: 0 4px 8px rgba(0,0,0,.5);
+}
 
-        #grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, 1fr);
-            gap: 2px;
-            width: 92vw;
-            max-width: 400px;
-            height: 92vw;
-            max-height: 400px;
-        }
+#game-container {
+    position: relative;
+    background: #1a2238;
+    border-radius: 10px;
+    padding: 3px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.6);
+}
 
-        .cell {
-            background-color: #0d1425;
-            border-radius: 4px;
-            width: 100%;
-            height: 100%;
-            /* खाली खानों में भी हल्की गहराई */
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
-        }
+#grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    gap: 2px;
+    width: min(92vw, 400px);
+    height: min(92vw, 400px);
+}
 
-        /* --- ब्लॉक का 3D डिज़ाइन --- */
-        .block {
-            border-radius: 4px;
-            width: 100%;
-            height: 100%;
-            position: relative;
-            box-shadow: 
-                inset -2px -2px 4px rgba(0,0,0,0.4), 
-                inset 2px 2px 4px rgba(255,255,255,0.5),
-                0 2px 3px rgba(0,0,0,0.3);
-        }
+.cell {
+    background: #0d1425;
+    border-radius: 4px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.6);
+    min-width: 0;
+    min-height: 0;
+}
 
-        /* --- अलग-अलग रंग --- */
-        .c-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .c-orange { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
-        .c-yellow { background: linear-gradient(135deg, #fceabb 0%, #f8b500 100%); }
-        .c-teal { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-        .c-purple { background: linear-gradient(135deg, #c471ed 0%, #f64f59 100%); }
-        .c-green { background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); }
-        .c-red { background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%); }
+.block {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    box-shadow:
+        inset -2px -2px 4px rgba(0,0,0,.4),
+        inset 2px 2px 4px rgba(255,255,255,.5),
+        0 2px 3px rgba(0,0,0,.3);
+}
 
-        #pieces-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            width: 92vw;
-            max-width: 400px;
-            height: 120px;
-            margin-top: 30px;
-        }
+.c-blue {
+    background: linear-gradient(135deg,#4facfe,#00f2fe);
+}
+.c-orange {
+    background: linear-gradient(135deg,#f6d365,#fda085);
+}
+.c-yellow {
+    background: linear-gradient(135deg,#fceabb,#f8b500);
+}
+.c-teal {
+    background: linear-gradient(135deg,#43e97b,#38f9d7);
+}
+.c-purple {
+    background: linear-gradient(135deg,#c471ed,#f64f59);
+}
+.c-green {
+    background: linear-gradient(135deg,#00b09b,#96c93d);
+}
+.c-red {
+    background: linear-gradient(135deg,#ff758c,#ff7eb3);
+}
 
-        .piece-holder {
-            width: 33%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+#pieces-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: min(92vw, 400px);
+    height: 120px;
+    margin-top: 25px;
+}
 
-        .draggable-piece {
-            display: grid;
-            gap: 2px;
-            cursor: grab;
-            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.4));
-        }
+.piece-holder {
+    width: 33.33%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        #drag-element {
-            position: fixed;
-            display: grid;
-            gap: 2px;
-            pointer-events: none; 
-            z-index: 1000;
-            top: 0;
-            left: 0;
-            filter: drop-shadow(0px 8px 12px rgba(0,0,0,0.6));
-        }
+.draggable-piece {
+    display: grid;
+    gap: 2px;
+    cursor: grab;
+    touch-action: none;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,.4));
+}
 
-        #game-over {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(13, 20, 37, 0.95);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-radius: 10px;
-            z-index: 2000;
-        }
-        
-        #game-over h2 { 
-            margin-bottom: 20px; 
-            font-size: 36px; 
-            color: #fff; 
-            text-shadow: 0 4px 10px rgba(0,0,0,0.8);
-        }
-        
-        button {
-            padding: 12px 35px;
-            font-size: 22px;
-            border: none;
-            border-radius: 30px;
-            background: linear-gradient(135deg, #00ff88, #00b85c);
-            color: #000;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 6px 15px rgba(0,255,136,0.4);
-        }
-        
-        button:active { transform: scale(0.95); }
-    </style>
+#drag-element {
+    position: fixed;
+    display: none;
+    gap: 2px;
+    pointer-events: none;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    filter: drop-shadow(0 8px 12px rgba(0,0,0,.6));
+}
+
+#game-over {
+    position: absolute;
+    inset: 0;
+    background: rgba(13,20,37,.96);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    z-index: 2000;
+}
+
+#game-over h2 {
+    margin-bottom: 15px;
+    font-size: 34px;
+    color: white;
+    text-shadow: 0 4px 10px rgba(0,0,0,.8);
+}
+
+#final-score {
+    font-size: 23px;
+    margin-bottom: 25px;
+    color: #00ff88;
+}
+
+button {
+    padding: 12px 35px;
+    font-size: 21px;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(135deg,#00ff88,#00b85c);
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(0,255,136,.4);
+}
+
+button:active {
+    transform: scale(.95);
+}
+
+#instructions {
+    font-size: 12px;
+    opacity: .8;
+    margin-top: 12px;
+    text-align: center;
+}
+
+@media(max-height:650px) {
+    #score-container {
+        margin-top: 4px;
+        margin-bottom: 5px;
+    }
+
+    #pieces-container {
+        margin-top: 10px;
+        height: 90px;
+    }
+
+    #instructions {
+        margin-top: 5px;
+    }
+}
+</style>
 </head>
+
 <body>
 
-    <div id="score-container">0</div>
+<div id="score-container">0</div>
 
-    <div id="game-container">
-        <div id="grid"></div>
-        <div id="game-over">
-            <h2>Game Over!</h2>
-            <button onclick="initGame()">Play Again</button>
-        </div>
+<div id="game-container">
+
+    <div id="grid"></div>
+
+    <div id="game-over">
+        <h2>GAME OVER!</h2>
+        <div id="final-score">Score: 0</div>
+        <button onclick="initGame()">PLAY AGAIN</button>
     </div>
 
-    <div id="pieces-container">
-        <div class="piece-holder" id="holder-0"></div>
-        <div class="piece-holder" id="holder-1"></div>
-        <div class="piece-holder" id="holder-2"></div>
-    </div>
+</div>
 
-    <div id="drag-element" style="display: none;"></div>
+<div id="pieces-container">
+    <div class="piece-holder" id="holder-0"></div>
+    <div class="piece-holder" id="holder-1"></div>
+    <div class="piece-holder" id="holder-2"></div>
+</div>
+
+<div id="instructions">
+    ब्लॉक को पकड़ें और बोर्ड पर सही जगह छोड़ें
+</div>
+
+<div id="drag-element"></div>
 
 <script>
-    const GRID_SIZE = 8;
-    let grid = [];
-    let score = 0;
-    let currentPieces = [null, null, null];
-    
-    let draggedPiece = null;
-    let draggedIndex = -1;
+"use strict";
 
-    // ग्रिड का असली साइज (मोबाइल के हिसाब से)
-    let cellSize = 0;
+// ==================================
+// GAME SETTINGS
+// ==================================
 
-    const colors = ['c-blue', 'c-orange', 'c-yellow', 'c-teal', 'c-purple', 'c-green', 'c-red'];
+const GRID_SIZE = 8;
+const GAP = 2;
 
-    const shapes = [
-        [[1]], // 1x1
-        [[1, 1]], // 1x2
-        [[1], [1]], // 2x1
-        [[1, 1, 1]], // 1x3
-        [[1], [1], [1]], // 3x1
-        [[1, 1, 1, 1]], // 1x4
-        [[1], [1], [1], [1]], // 4x1
-        [[1, 1], [1, 1]], // 2x2
-        [[1, 1, 1], [1, 1, 1], [1, 1, 1]], // 3x3
-        [[1, 0], [1, 1]], // L-Shape
-        [[0, 1], [1, 1]],
-        [[1, 1], [1, 0]],
-        [[1, 1], [0, 1]],
-        [[1, 1, 1], [0, 1, 0]] // T-Shape
-    ];
+let grid = [];
+let score = 0;
 
-    function initGame() {
-        score = 0;
-        document.getElementById('score-container').innerText = score;
-        document.getElementById('game-over').style.display = 'none';
-        
-        grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
-        renderGrid();
-        generatePieces();
-        
-        // ग्रिड का साइज कैलकुलेट करें
-        const gridRect = document.getElementById('grid').getBoundingClientRect();
-        cellSize = (gridRect.width - 14) / GRID_SIZE; // 14px गैप और पैडिंग को हटाकर
-    }
+let currentPieces = [null, null, null];
 
-    function renderGrid() {
-        const gridEl = document.getElementById('grid');
-        gridEl.innerHTML = '';
-        for (let r = 0; r < GRID_SIZE; r++) {
-            for (let c = 0; c < GRID_SIZE; c++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.dataset.row = r;
-                cell.dataset.col = c;
-                if (grid[r][c]) {
-                    const block = document.createElement('div');
-                    block.className = `block ${grid[r][c]}`;
-                    cell.appendChild(block);
-                }
-                gridEl.appendChild(cell);
-            }
-        }
-    }
+let draggedPiece = null;
+let draggedIndex = -1;
 
-    function generatePieces() {
-        currentPieces = [];
-        for (let i = 0; i < 3; i++) {
-            const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            currentPieces.push({ shape: randomShape, color: randomColor });
-            renderPieceInHolder(i, randomShape, randomColor);
-        }
-    }
+let cellSize = 0;
+let pitch = 0;
 
-    function renderPieceInHolder(index, shape, color) {
-        const holder = document.getElementById(`holder-${index}`);
-        holder.innerHTML = '';
-        
-        const pieceEl = document.createElement('div');
-        pieceEl.className = 'draggable-piece';
-        
-        const pCellSize = window.innerWidth < 400 ? 22 : 30;
-        
-        pieceEl.style.gridTemplateColumns = `repeat(${shape[0].length}, ${pCellSize}px)`;
-        pieceEl.style.gridTemplateRows = `repeat(${shape.length}, ${pCellSize}px)`;
+let isDragging = false;
+let lastPointerId = null;
 
-        for (let r = 0; r < shape.length; r++) {
-            for (let c = 0; c < shape[r].length; c++) {
-                const cellDiv = document.createElement('div');
-                if (shape[r][c] === 1) {
-                    cellDiv.className = `block ${color}`;
-                }
-                pieceEl.appendChild(cellDiv);
-            }
-        }
+// ==================================
+// COLORS
+// ==================================
 
-        pieceEl.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            startDrag(e, index, shape, color, pieceEl);
-        });
-        
-        holder.appendChild(pieceEl);
-    }
+const colors = [
+    'c-blue',
+    'c-orange',
+    'c-yellow',
+    'c-teal',
+    'c-purple',
+    'c-green',
+    'c-red'
+];
 
-    function startDrag(e, index, shape, color, originalEl) {
-        if (currentPieces[index] === null) return;
+// ==================================
+// BLOCK SHAPES
+// ==================================
 
-        draggedPiece = { shape, color };
-        draggedIndex = index;
+const shapes = [
+    [[1]],
 
-        const dragEl = document.getElementById('drag-element');
-        dragEl.innerHTML = '';
-        dragEl.style.gridTemplateColumns = `repeat(${shape[0].length}, ${cellSize}px)`;
-        dragEl.style.gridTemplateRows = `repeat(${shape.length}, ${cellSize}px)`;
+    [[1,1]],
+    [[1],[1]],
 
-        for (let r = 0; r < shape.length; r++) {
-            for (let c = 0; c < shape[r].length; c++) {
-                const cellDiv = document.createElement('div');
-                if (shape[r][c] === 1) {
-                    cellDiv.className = `block ${color}`;
-                }
-                dragEl.appendChild(cellDiv);
-            }
-        }
+    [[1,1,1]],
+    [[1],[1],[1]],
 
-        dragEl.style.display = 'grid';
-        
-        // ब्लॉक को उंगली के ठीक ऊपर रखने के लिए
-        updateDragElementPosition(e.clientX, e.clientY - 50);
+    [[1,1,1,1]],
+    [[1],[1],[1],[1]],
 
-        originalEl.style.visibility = 'hidden';
+    [[1,1],[1,1]],
 
-        document.addEventListener('pointermove', onDragMove);
-        document.addEventListener('pointerup', onDragEnd);
-    }
+    [[1,1,1],[1,1,1],[1,1,1]],
 
-    function updateDragElementPosition(x, y) {
-        const dragEl = document.getElementById('drag-element');
-        // -50% का मतलब है कि ब्लॉक का सेंटर माउस पर रहे
-        dragEl.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
-    }
+    [[1,0],[1,1]],
+    [[0,1],[1,1]],
 
-    function onDragMove(e) {
-        if (!draggedPiece) return;
-        let currentX = e.clientX;
-        let currentY = e.clientY - 50;
-        
-        updateDragElementPosition(currentX, currentY);
-        highlightGrid(currentX, currentY);
-    }
+    [[1,1],[1,0]],
+    [[1,1],[0,1]],
 
-    // ब्लॉक किस सेल में गिरेगा, यह कैलकुलेट करना
-    function getTargetCell(x, y) {
-        const gridRect = document.getElementById('grid').getBoundingClientRect();
-        
-        // ग्रिड के अंदर माउस की पोजीशन
-        const relativeX = x - gridRect.left;
-        const relativeY = y - gridRect.top;
+    [[1,1,1],[0,1,0]]
+];
 
-        // अगर माउस ग्रिड से बाहर है
-        if (relativeX < -50 || relativeY < -50 || relativeX > gridRect.width + 50 || relativeY > gridRect.height + 50) {
-            return null;
-        }
+// ==================================
+// INITIALIZE GAME
+// ==================================
 
-        const cellWidth = gridRect.width / GRID_SIZE;
-        const cellHeight = gridRect.height / GRID_SIZE;
+function initGame() {
 
-        // ब्लॉक के सेंटर से रो और कॉलम निकालें
-        let col = Math.round(relativeX / cellWidth - (draggedPiece.shape[0].length / 2));
-        let row = Math.round(relativeY / cellHeight - (draggedPiece.shape.length / 2));
+    cancelDrag();
 
-        return { row, col };
-    }
+    score = 0;
 
-    function highlightGrid(x, y) {
-        document.querySelectorAll('.cell').forEach(c => {
-            c.style.backgroundColor = '#0d1425'; // नॉर्मल रंग
-        });
+    document.getElementById('score-container').innerText = 0;
 
-        const target = getTargetCell(x, y);
-        if (target && canPlacePiece(target.row, target.col, draggedPiece.shape)) {
-            const shape = draggedPiece.shape;
-            for (let r = 0; r < shape.length; r++) {
-                for (let c = 0; c < shape[r].length; c++) {
-                    if (shape[r][c] === 1) {
-                        const cell = document.querySelector(`.cell[data-row="${target.row + r}"][data-col="${target.col + c}"]`);
-                        if (cell) cell.style.backgroundColor = 'rgba(0, 255, 136, 0.4)'; // हरा हाइलाइट
-                    }
-                }
-            }
-        }
-    }
+    document.getElementById('game-over').style.display = 'none';
 
-    function onDragEnd(e) {
-        document.removeEventListener('pointermove', onDragMove);
-        document.addEventListener('pointerup', onDragEnd); // Fix: removeEventListener
+    grid = Array.from(
+        {length: GRID_SIZE},
+        () => Array(GRID_SIZE).fill(null)
+    );
 
-        document.querySelectorAll('.cell').forEach(c => {
-            c.style.backgroundColor = '#0d1425';
-        });
+    currentPieces = [null, null, null];
 
-        if (!draggedPiece) return;
+    updateGridMetrics();
 
-        let currentX = e.clientX;
-        let currentY = e.clientY - 50;
-        
-        const target = getTargetCell(currentX, currentY);
-        let placed = false;
+    renderGrid();
 
-        if (target && canPlacePiece(target.row, target.col, draggedPiece.shape)) {
-            placePiece(target.row, target.col, draggedPiece);
-            placed = true;
-        }
+    generatePieces();
+}
 
-        if (placed) {
-            currentPieces[draggedIndex] = null;
-            const holder = document.getElementById(`holder-${draggedIndex}`);
-            holder.innerHTML = ''; 
+// ==================================
+// GRID MEASUREMENTS
+// ==================================
 
-            checkLines();
-            
-            // गेम ओवर चेक करें
-            if (isGameOver()) {
-                document.getElementById('game-over').style.display = 'flex';
-            } else if (currentPieces.every(p => p === null)) {
-                generatePieces();
-            }
-        } else {
-            // अगर फिट नहीं हुआ तो ब्लॉक वापस दिखाएं
-            const originalEl = document.getElementById(`holder-${draggedIndex}`).firstChild;
-            if(originalEl) originalEl.style.visibility = 'visible';
-        }
+function updateGridMetrics() {
 
-        document.getElementById('drag-element').style.display = 'none';
-        draggedPiece = null;
-        draggedIndex = -1;
-    }
+    const gridEl = document.getElementById('grid');
 
-    function canPlacePiece(row, col, shape) {
-        if (row < 0 || col < 0 || row + shape.length > GRID_SIZE || col + shape[0].length > GRID_SIZE) {
-            return false; 
-        }
-        for (let r = 0; r < shape.length; r++) {
-            for (let c = 0; c < shape[r].length; c++) {
-                if (shape[r][c] === 1 && grid[row + r][col + c] !== null) {
-                    return false; 
-                }
-            }
-        }
-        return true;
-    }
+    const rect = gridEl.getBoundingClientRect();
 
-    function placePiece(row, col, pieceData) {
-        const shape = pieceData.shape;
-        for (let r = 0; r < shape.length; r++) {
-            for (let c = 0; c < shape[r].length; c++) {
-                if (shape[r][c] === 1) {
-                    grid[row + r][col + c] = pieceData.color;
-                    score += 1;
-                }
-            }
-        }
-        document.getElementById('score-container').innerText = score;
-        renderGrid();
-    }
+    cellSize = (rect.width - GAP * (GRID_SIZE - 1)) / GRID_SIZE;
 
-    function checkLines() {
-        let rowsToClear = [];
-        let colsToClear = [];
+    pitch = cellSize + GAP;
+}
 
-        for (let r = 0; r < GRID_SIZE; r++) {
-            if (grid[r].every(cell => cell !== null)) rowsToClear.push(r);
-        }
+// ==================================
+// RENDER GRID
+// ==================================
+
+function renderGrid() {
+
+    const gridEl = document.getElementById('grid');
+
+    gridEl.innerHTML = '';
+
+    for (let r = 0; r < GRID_SIZE; r++) {
+
         for (let c = 0; c < GRID_SIZE; c++) {
-            let isFull = true;
-            for (let r = 0; r < GRID_SIZE; r++) {
-                if (grid[r][c] === null) { isFull = false; break; }
+
+            const cell = document.createElement('div');
+
+            cell.className = 'cell';
+
+            cell.dataset.row = r;
+            cell.dataset.col = c;
+
+            if (grid[r][c] !== null) {
+
+                const block = document.createElement('div');
+
+                block.className = 'block ' + grid[r][c];
+
+                cell.appendChild(block);
             }
-            if (isFull) colsToClear.push(c);
+
+            gridEl.appendChild(cell);
         }
+    }
+}
 
-        if (rowsToClear.length > 0 || colsToClear.length > 0) {
-            score += (rowsToClear.length * 10) + (colsToClear.length * 10);
-            document.getElementById('score-container').innerText = score;
+// ==================================
+// GENERATE THREE PIECES
+// ==================================
 
-            rowsToClear.forEach(r => { for (let c = 0; c < GRID_SIZE; c++) grid[r][c] = null; });
-            colsToClear.forEach(c => { for (let r = 0; r < GRID_SIZE; r++) grid[r][c] = null; });
-            
-            renderGrid();
+function generatePieces() {
+
+    currentPieces = [null, null, null];
+
+    for (let i = 0; i < 3; i++) {
+
+        const randomShape =
+            shapes[Math.floor(Math.random() * shapes.length)];
+
+        const randomColor =
+            colors[Math.floor(Math.random() * colors.length)];
+
+        currentPieces[i] = {
+            shape: randomShape,
+            color: randomColor
+        };
+
+        renderPieceInHolder(i, randomShape, randomColor);
+    }
+
+    // नए ब्लॉक आने के बाद ही गेम ओवर चेक करें
+    if (isGameOver()) {
+        showGameOver();
+    }
+}
+
+// ==================================
+// RENDER PIECE
+// ==================================
+
+function renderPieceInHolder(index, shape, color) {
+
+    const holder = document.getElementById('holder-' + index);
+
+    holder.innerHTML = '';
+
+    const pieceEl = document.createElement('div');
+
+    pieceEl.className = 'draggable-piece';
+
+    const pCellSize = window.innerWidth < 400 ? 22 : 30;
+
+    const rows = shape.length;
+    const cols = shape[0].length;
+
+    pieceEl.style.gridTemplateColumns =
+        `repeat(${cols}, ${pCellSize}px)`;
+
+    pieceEl.style.gridTemplateRows =
+        `repeat(${rows}, ${pCellSize}px)`;
+
+    for (let r = 0; r < rows; r++) {
+
+        for (let c = 0; c < cols; c++) {
+
+            const cell = document.createElement('div');
+
+            if (shape[r][c] === 1) {
+                cell.className = 'block ' + color;
+            }
+
+            pieceEl.appendChild(cell);
         }
     }
 
-    // --- 100% सटीक गेम ओवर चेक ---
-    function isGameOver() {
-        for (let i = 0; i < 3; i++) {
-            const piece = currentPieces[i];
-            if (piece === null) continue; // अगर ब्लॉक खेल लिया गया है तो स्किप करें
-            
-            const shape = piece.shape;
-            
-            // बोर्ड के हर एक सेल पर चेक करें
-            for (let r = 0; r < GRID_SIZE; r++) {
-                for (let c = 0; c < GRID_SIZE; c++) {
-                    if (canPlacePiece(r, c, shape)) {
-                        return false; // जगह मिल गई, तो गेम ओवर नहीं
-                    }
-                }
-            }
-        }
-        return true; // कोई जगह नहीं मिली, गेम ओवर
-    }
+    pieceEl.addEventListener('pointerdown', function(e) {
 
-    window.addEventListener('resize', () => {
-        initGame(); // रिसाइज होने पर गेम रिसेट हो जाएगा (साइज फिक्स करने के लिए)
+        e.preventDefault();
+
+        startDrag(e, index, shape, color, pieceEl);
     });
 
+    holder.appendChild(pieceEl);
+}
+
+// ==================================
+// START DRAG
+// ==================================
+
+function startDrag(e, index, shape, color, originalEl) {
+
+    if (currentPieces[index] === null || isDragging) return;
+
+    updateGridMetrics();
+
+    draggedPiece = {
+        shape: shape,
+        color: color
+    };
+
+    draggedIndex = index;
+    lastPointerId = e.pointerId;
+    isDragging = true;
+
+    const dragEl = document.getElementById('drag-element');
+
+    dragEl.innerHTML = '';
+
+    const rows = shape.length;
+    const cols = shape[0].length;
+
+    dragEl.style.gridTemplateColumns =
+        `repeat(${cols}, ${cellSize}px)`;
+
+    dragEl.style.gridTemplateRows =
+        `repeat(${rows}, ${cellSize}px)`;
+
+    for (let r = 0; r < rows; r++) {
+
+        for (let c = 0; c < cols; c++) {
+
+            const cell = document.createElement('div');
+
+            if (shape[r][c] === 1) {
+                cell.className = 'block ' + color;
+            }
+
+            dragEl.appendChild(cell);
+        }
+    }
+
+    dragEl.style.display = 'grid';
+
+    originalEl.style.visibility = 'hidden';
+
+    updateDragElementPosition(e.clientX, e.clientY - 50);
+
+    document.addEventListener('pointermove', onDragMove);
+
+    document.addEventListener('pointerup', onDragEnd);
+
+    document.addEventListener('pointercancel', onDragCancel);
+}
+
+// ==================================
+// DRAG POSITION
+// ==================================
+
+function updateDragElementPosition(x, y) {
+
+    const dragEl = document.getElementById('drag-element');
+
+    dragEl.style.transform =
+        `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+}
+
+// ==================================
+// DRAG MOVE
+// ==================================
+
+function onDragMove(e) {
+
+    if (!draggedPiece || e.pointerId !== lastPointerId) return;
+
+    e.preventDefault();
+
+    const x = e.clientX;
+    const y = e.clientY - 50;
+
+    updateDragElementPosition(x, y);
+
+    highlightGrid(x, y);
+}
+
+// ==================================
+// FIND TARGET CELL
+// ==================================
+
+function getTargetCell(x, y) {
+
+    if (!draggedPiece) return null;
+
+    const gridEl = document.getElementById('grid');
+
+    const rect = gridEl.getBoundingClientRect();
+
+    const shape = draggedPiece.shape;
+
+    const rows = shape.length;
+    const cols = shape[0].length;
+
+    const pieceWidth = cols * cellSize + (cols - 1) * GAP;
+
+    const pieceHeight = rows * cellSize + (rows - 1) * GAP;
+
+    // ड्रैग ब्लॉक का ऊपर-बायां कोना
+    const left = x - pieceWidth / 2;
+    const top = y - pieceHeight / 2;
+
+    const relativeX = left - rect.left;
+    const relativeY = top - rect.top;
+
+    const col = Math.round(relativeX / pitch);
+    const row = Math.round(relativeY / pitch);
+
+    return {row, col};
+}
+
+// ==================================
+// HIGHLIGHT VALID POSITION
+// ==================================
+
+function highlightGrid(x, y) {
+
+    document.querySelectorAll('.cell').forEach(cell => {
+        cell.style.backgroundColor = '';
+    });
+
+    const target = getTargetCell(x, y);
+
+    if (!target) return;
+
+    if (!canPlacePiece(
+        target.row,
+        target.col,
+        draggedPiece.shape
+    )) return;
+
+    const shape = draggedPiece.shape;
+
+    for (let r = 0; r < shape.length; r++) {
+
+        for (let c = 0; c < shape[r].length; c++) {
+
+            if (shape[r][c] === 1) {
+
+                const cell = document.querySelector(
+                    `.cell[data-row="${target.row + r}"][data-col="${target.col + c}"]`
+                );
+
+                if (cell) {
+                    cell.style.backgroundColor = 'rgba(0,255,136,.45)';
+                }
+            }
+        }
+    }
+}
+
+// ==================================
+// END DRAG
+// ==================================
+
+function onDragEnd(e) {
+
+    if (!draggedPiece || e.pointerId !== lastPointerId) return;
+
+    const target = getTargetCell(e.clientX, e.clientY - 50);
+
+    let placed = false;
+
+    if (target && canPlacePiece(
+        target.row,
+        target.col,
+        draggedPiece.shape
+    )) {
+
+        placePiece(target.row, target.col, draggedPiece);
+
+        currentPieces[draggedIndex] = null;
+
+        document.getElementById(
+            'holder-' + draggedIndex
+        ).innerHTML = '';
+
+        placed = true;
+
+        checkLines();
+    }
+
+    finishDrag();
+
+    if (placed) {
+
+        // ==================================
+        // सबसे जरूरी सुधार:
+        // तीनों ब्लॉक खत्म हों तो पहले नए ब्लॉक दें
+        // उसके बाद ही गेम ओवर चेक करें
+        // ==================================
+
+        if (currentPieces.every(piece => piece === null)) {
+
+            generatePieces();
+
+        } else {
+
+            // केवल उपलब्ध ब्लॉकों की जाँच
+            if (isGameOver()) {
+                showGameOver();
+            }
+        }
+    }
+}
+
+// ==================================
+// CANCEL DRAG
+// ==================================
+
+function onDragCancel(e) {
+
+    if (e.pointerId !== lastPointerId) return;
+
+    finishDrag();
+}
+
+function finishDrag() {
+
+    document.removeEventListener('pointermove', onDragMove);
+
+    document.removeEventListener('pointerup', onDragEnd);
+
+    document.removeEventListener('pointercancel', onDragCancel);
+
+    document.querySelectorAll('.cell').forEach(cell => {
+        cell.style.backgroundColor = '';
+    });
+
+    const dragEl = document.getElementById('drag-element');
+
+    dragEl.style.display = 'none';
+
+    if (draggedPiece && draggedIndex >= 0 &&
+        currentPieces[draggedIndex] !== null) {
+
+        const holder = document.getElementById(
+            'holder-' + draggedIndex
+        );
+
+        if (holder.firstChild) {
+            holder.firstChild.style.visibility = 'visible';
+        }
+    }
+
+    draggedPiece = null;
+    draggedIndex = -1;
+    lastPointerId = null;
+    isDragging = false;
+}
+
+function cancelDrag() {
+
+    if (isDragging) {
+        finishDrag();
+    }
+}
+
+// ==================================
+// CHECK PLACEMENT
+// ==================================
+
+function canPlacePiece(row, col, shape) {
+
+    if (
+        row < 0 ||
+        col < 0 ||
+        row + shape.length > GRID_SIZE ||
+        col + shape[0].length > GRID_SIZE
+    ) {
+        return false;
+    }
+
+    for (let r = 0; r < shape.length; r++) {
+
+        for (let c = 0; c < shape[r].length; c++) {
+
+            if (
+                shape[r][c] === 1 &&
+                grid[row + r][col + c] !== null
+            ) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+// ==================================
+// PLACE PIECE
+// ==================================
+
+function placePiece(row, col, pieceData) {
+
+    const shape = pieceData.shape;
+
+    for (let r = 0; r < shape.length; r++) {
+
+        for (let c = 0; c < shape[r].length; c++) {
+
+            if (shape[r][c] === 1) {
+
+                grid[row + r][col + c] = pieceData.color;
+
+                score++;
+            }
+        }
+    }
+
+    updateScore();
+
+    renderGrid();
+}
+
+// ==================================
+// UPDATE SCORE
+// ==================================
+
+function updateScore() {
+
+    document.getElementById('score-container').innerText = score;
+}
+
+// ==================================
+// CLEAR FULL ROWS AND COLUMNS
+// ==================================
+
+function checkLines() {
+
+    let rowsToClear = [];
+    let colsToClear = [];
+
+    // पूरी ROW चेक करें
+    for (let r = 0; r < GRID_SIZE; r++) {
+
+        if (grid[r].every(cell => cell !== null)) {
+            rowsToClear.push(r);
+        }
+    }
+
+    // पूरा COLUMN चेक करें
+    for (let c = 0; c < GRID_SIZE; c++) {
+
+        let full = true;
+
+        for (let r = 0; r < GRID_SIZE; r++) {
+
+            if (grid[r][c] === null) {
+                full = false;
+                break;
+            }
+        }
+
+        if (full) {
+            colsToClear.push(c);
+        }
+    }
+
+    // लाइन बोनस
+    const totalLines = rowsToClear.length + colsToClear.length;
+
+    if (totalLines === 0) return;
+
+    score += totalLines * 10;
+
+    // पूरी ROW खाली करें
+    rowsToClear.forEach(r => {
+
+        for (let c = 0; c < GRID_SIZE; c++) {
+            grid[r][c] = null;
+        }
+    });
+
+    // पूरा COLUMN खाली करें
+    colsToClear.forEach(c => {
+
+        for (let r = 0; r < GRID_SIZE; r++) {
+            grid[r][c] = null;
+        }
+    });
+
+    updateScore();
+
+    renderGrid();
+}
+
+// ==================================
+// ACCURATE GAME OVER CHECK
+// ==================================
+
+function isGameOver() {
+
+    // हर उपलब्ध ब्लॉक चेक करें
+    for (let i = 0; i < currentPieces.length; i++) {
+
+        const piece = currentPieces[i];
+
+        if (piece === null) continue;
+
+        const shape = piece.shape;
+
+        // बोर्ड के हर सेल पर चेक करें
+        for (let r = 0; r < GRID_SIZE; r++) {
+
+            for (let c = 0; c < GRID_SIZE; c++) {
+
+                if (canPlacePiece(r, c, shape)) {
+
+                    // कम से कम एक जगह उपलब्ध है
+                    return false;
+                }
+            }
+        }
+    }
+
+    // कोई भी उपलब्ध ब्लॉक फिट नहीं होता
+    return true;
+}
+
+// ==================================
+// GAME OVER SCREEN
+// ==================================
+
+function showGameOver() {
+
+    document.getElementById('final-score').innerText =
+        'Score: ' + score;
+
+    document.getElementById('game-over').style.display = 'flex';
+}
+
+// ==================================
+// RESIZE WITHOUT RESTART
+// ==================================
+
+let resizeTimer = null;
+
+window.addEventListener('resize', function() {
+
+    clearTimeout(resizeTimer);
+
+    resizeTimer = setTimeout(function() {
+
+        updateGridMetrics();
+
+        if (isDragging && draggedPiece) {
+
+            const dragEl = document.getElementById('drag-element');
+
+            const shape = draggedPiece.shape;
+
+            dragEl.style.gridTemplateColumns =
+                `repeat(${shape[0].length}, ${cellSize}px)`;
+
+            dragEl.style.gridTemplateRows =
+                `repeat(${shape.length}, ${cellSize}px)`;
+        }
+
+    }, 100);
+});
+
+// ==================================
+// START GAME
+// ==================================
+
+window.addEventListener('load', function() {
+
     initGame();
+
+});
+
 </script>
 </body>
 </html>
