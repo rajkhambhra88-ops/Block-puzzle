@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Block Puzzle Game - 3D</title>
+    <title>Block Puzzle Game - Perfect</title>
     <style>
         * {
             box-sizing: border-box;
@@ -60,13 +60,12 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        /* --- असली 3D ब्लॉक का डिज़ाइन --- */
+        /* --- 3D ब्लॉक डिज़ाइन --- */
         .block {
             border-radius: 6px;
             width: 100%;
             height: 100%;
             position: relative;
-            /* ऊपर से रौशनी (Highlight) और नीचे से शैडो (Shadow) */
             box-shadow: 
                 inset -2px -3px 5px rgba(0,0,0,0.5), 
                 inset 3px 3px 6px rgba(255,255,255,0.6),
@@ -74,7 +73,7 @@
             border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* --- अलग-अलग चमकदार रंग (Gradients) --- */
+        /* --- अलग-अलग चमकदार रंग --- */
         .c-blue { background: linear-gradient(135deg, #5b9bff, #2b6eeb); }
         .c-orange { background: linear-gradient(135deg, #ff9f43, #e67e22); }
         .c-yellow { background: linear-gradient(135deg, #f9ca24, #f0932b); }
@@ -109,7 +108,6 @@
             filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.5));
         }
 
-        /* ड्रैग करते समय उंगली के साथ चलने वाला ब्लॉक */
         #drag-element {
             position: fixed;
             display: grid;
@@ -118,14 +116,15 @@
             z-index: 1000;
             top: 0;
             left: 0;
-            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.6));
+            filter: drop-shadow(0px 15px 20px rgba(0,0,0,0.7));
+            opacity: 0.9;
         }
 
         #game-over {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(10, 15, 30, 0.9);
-            backdrop-filter: blur(4px);
+            background: rgba(10, 15, 30, 0.95);
+            backdrop-filter: blur(5px);
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -190,24 +189,23 @@
     let draggedIndex = -1;
     let dragX = 0, dragY = 0;
 
-    // नए और चमकदार रंग
     const colors = ['c-blue', 'c-orange', 'c-yellow', 'c-teal', 'c-purple', 'c-green', 'c-red', 'c-pink'];
 
     const shapes = [
-        [[1]],
-        [[1, 1]],
-        [[1], [1]],
-        [[1, 1, 1]],
-        [[1], [1], [1]],
-        [[1, 1, 1, 1]],
-        [[1], [1], [1], [1]],
-        [[1, 1], [1, 1]],
-        [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-        [[1, 0], [1, 1]],
-        [[0, 1], [1, 1]],
-        [[1, 1], [1, 0]],
-        [[1, 1], [0, 1]],
-        [[1, 1, 1], [0, 1, 0]]
+        [[1]], // 1x1
+        [[1, 1]], // 1x2
+        [[1], [1]], // 2x1
+        [[1, 1, 1]], // 1x3
+        [[1], [1], [1]], // 3x1
+        [[1, 1, 1, 1]], // 1x4
+        [[1], [1], [1], [1]], // 4x1
+        [[1, 1], [1, 1]], // 2x2
+        [[1, 1, 1], [1, 1, 1], [1, 1, 1]], // 3x3
+        [[1, 0], [1, 1]], // L-Shape
+        [[0, 1], [1, 1]], // Reverse L
+        [[1, 1], [1, 0]], // L-Shape
+        [[1, 1], [0, 1]], // Reverse L
+        [[1, 1, 1], [0, 1, 0]] // T-Shape
     ];
 
     function initGame() {
@@ -215,7 +213,7 @@
         document.getElementById('score-container').innerText = score;
         document.getElementById('game-over').style.display = 'none';
         
-        // ग्रिड को खाली (null) करें
+        // बोर्ड को खाली करें
         grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
         renderGrid();
         generatePieces();
@@ -287,7 +285,7 @@
         draggedIndex = index;
 
         const gridRect = document.getElementById('grid').getBoundingClientRect();
-        const cellSize = (gridRect.width - 18) / GRID_SIZE; // गैप के हिसाब से साइज
+        const cellSize = (gridRect.width - 18) / GRID_SIZE;
 
         const dragEl = document.getElementById('drag-element');
         dragEl.innerHTML = '';
@@ -307,7 +305,7 @@
         dragEl.style.display = 'grid';
         
         dragX = e.clientX;
-        dragY = e.clientY - 60; // उंगली से थोड़ा ऊपर ताकि ब्लॉक दिखे
+        dragY = e.clientY - 60; 
         updateDragElementPosition();
 
         originalEl.style.visibility = 'hidden';
@@ -326,12 +324,10 @@
         dragX = e.clientX;
         dragY = e.clientY - 60;
         updateDragElementPosition();
-        
         highlightGrid();
     }
 
     function highlightGrid() {
-        // सारे सेल को नॉर्मल करें
         document.querySelectorAll('.cell').forEach(c => {
             c.style.backgroundColor = '#0b1021';
         });
@@ -343,7 +339,7 @@
                 for (let c = 0; c < shape[r].length; c++) {
                     if (shape[r][c] === 1) {
                         const cell = document.querySelector(`.cell[data-row="${placement.row + r}"][data-col="${placement.col + c}"]`);
-                        if (cell) cell.style.backgroundColor = 'rgba(0, 255, 136, 0.4)'; // हरा हाइलाइट
+                        if (cell) cell.style.backgroundColor = 'rgba(0, 255, 136, 0.4)'; 
                     }
                 }
             }
@@ -389,20 +385,21 @@
         }
 
         if (placed) {
+            // ब्लॉक को स्थायी रूप से हटाएं
             currentPieces[draggedIndex] = null;
             const holder = document.getElementById(`holder-${draggedIndex}`);
             holder.innerHTML = ''; 
 
             checkLines();
             
-            // ब्लॉक रखने के बाद गेम ओवर चेक करें
+            // गेम ओवर चेक
             if (isGameOver()) {
                 document.getElementById('game-over').style.display = 'flex';
             } else if (currentPieces.every(p => p === null)) {
                 generatePieces();
             }
         } else {
-            // अगर गलत जगह छोड़ा, तो ब्लॉक वापस लाएं
+            // अगर गलत जगह छोड़ा, तो ब्लॉक को वापस नीचे दिखाएं
             const originalEl = document.getElementById(`holder-${draggedIndex}`).firstChild;
             if(originalEl) originalEl.style.visibility = 'visible';
         }
@@ -412,15 +409,15 @@
         draggedIndex = -1;
     }
 
-    // यह चेक करता है कि ब्लॉक उस जगह पर फिट हो सकता है या नहीं
+    // चेक करता है कि ब्लॉक उस जगह पर फिट हो सकता है या नहीं
     function canPlacePiece(row, col, shape) {
         if (row < 0 || col < 0 || row + shape.length > GRID_SIZE || col + shape[0].length > GRID_SIZE) {
-            return false; // बोर्ड से बाहर
+            return false; 
         }
         for (let r = 0; r < shape.length; r++) {
             for (let c = 0; c < shape[r].length; c++) {
                 if (shape[r][c] === 1 && grid[row + r][col + c] !== null) {
-                    return false; // जगह पहले से भरी है
+                    return false; 
                 }
             }
         }
@@ -467,31 +464,34 @@
         }
     }
 
-    // --- सबसे महत्वपूर्ण: गेम ओवर लॉजिक ---
+    // --- असली गेम ओवर लॉजिक ---
     function isGameOver() {
-        // तीनों में से जो भी ब्लॉक बचे हैं, उन्हें चेक करें
+        // 3 में से जो भी ब्लॉक बचे हैं, उन्हें एक-एक करके चेक करें
         for (let i = 0; i < 3; i++) {
             const piece = currentPieces[i];
-            if (piece === null) continue; // अगर ब्लॉक खत्म हो गया तो स्किप करें
+            
+            // अगर वह ब्लॉक पहले ही खेल लिया गया है (null है), तो उसे चेक न करें
+            if (piece === null) continue; 
             
             const shape = piece.shape;
             
             // बोर्ड के हर एक खाने (0 से 7 तक) पर चेक करें
             for (let r = 0; r < GRID_SIZE; r++) {
                 for (let c = 0; c < GRID_SIZE; c++) {
-                    // अगर कोई भी ब्लॉक कहीं भी फिट हो सकता है, तो गेम ओवर नहीं है
+                    // अगर कोई भी बचा हुआ ब्लॉक कहीं भी फिट हो सकता है, तो गेम ओवर नहीं है
                     if (canPlacePiece(r, c, shape)) {
                         return false; 
                     }
                 }
             }
         }
-        // अगर तीनों ब्लॉक बोर्ड पर कहीं नहीं फिट हो रहे, तो गेम ओवर
+        // अगर सारे ब्लॉक चेक करने के बाद भी कोई जगह नहीं मिली, तो गेम ओवर
         return true; 
     }
 
     window.addEventListener('resize', renderGrid);
 
+    // गेम शुरू करें
     initGame();
 </script>
 </body>
